@@ -6,31 +6,44 @@
     <style>
         body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #333; }
         canvas { border: 1px solid #fff; }
+        #startBtn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; font-size: 24px; }
     </style>
 </head>
 <body>
+    <button id="startBtn" style="display: none;">Start Game</button>
     <script>
         const SCREEN_WIDTH = 1600;
         const SCREEN_HEIGHT = 1200;
-        const GRID_SIZE = 40;  // Adjustable, matches your earlier versions
+        const GRID_SIZE = 40;
         const SNAKE_COLOR = [0, 255, 0];
         const BACKGROUND_COLOR = [50, 150, 50];
 
         let snake, predator, food;
-        let score = 0, highScore = 0, gameOver = false;
+        let score = 0, highScore = 0, gameOver = false, gameStarted = false;
         let snakeImg, predatorImg, foodImg;
 
         function preload() {
-            // Replace with your GitHub Pages URL after hosting
-            snakeImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/snake_head.png");
-            predatorImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/predator.png");
-            foodImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/food.png");
+            snakeImg = loadImage("https://yourgithubusername.github.io/snake-game/assets/snake_head.png");
+            predatorImg = loadImage("https://yourgithubusername.github.io/snake-game/assets/predator.png");
+            foodImg = loadImage("https://yourgithubusername.github.io/snake-game/assets/food.png");
+
+            // Resize images to GRID_SIZE (40x40)
+            snakeImg.resize(GRID_SIZE, GRID_SIZE);
+            predatorImg.resize(GRID_SIZE, GRID_SIZE);
+            foodImg.resize(GRID_SIZE, GRID_SIZE);
         }
 
         function setup() {
             createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
-            frameRate(10);  // Matches SNAKE_SPEED from Pygame
+            frameRate(10);
             highScore = localStorage.getItem("highScore") || 0;
+            document.getElementById("startBtn").style.display = "block";
+            document.getElementById("startBtn").onclick = startGame;
+        }
+
+        function startGame() {
+            gameStarted = true;
+            document.getElementById("startBtn").style.display = "none";
             resetGame();
         }
 
@@ -50,22 +63,26 @@
 
         function draw() {
             background(...BACKGROUND_COLOR);
-            
+
+            if (!gameStarted) {
+                textSize(32);
+                fill(255);
+                text("Click Start to Play", SCREEN_WIDTH / 2 - 150, SCREEN_HEIGHT / 2 - 50);
+                return;
+            }
+
             if (!gameOver) {
-                // Move snake
                 snake.x = (snake.x + snake.direction[0]) % SCREEN_WIDTH / GRID_SIZE * GRID_SIZE;
                 snake.y = (snake.y + snake.direction[1]) % SCREEN_HEIGHT / GRID_SIZE * GRID_SIZE;
                 snake.positions.unshift([snake.x, snake.y]);
                 if (snake.positions.length > snake.length) snake.positions.pop();
 
-                // Check food
                 if (snake.x === food.x && snake.y === food.y) {
                     snake.length++;
                     score += 10;
                     food = {x: randomGrid(), y: randomGrid()};
                 }
 
-                // Predator chase
                 if (predator.x < snake.x) predator.x += GRID_SIZE;
                 else if (predator.x > snake.x) predator.x -= GRID_SIZE;
                 if (predator.y < snake.y) predator.y += GRID_SIZE;
@@ -73,12 +90,10 @@
                 predator.x = constrain(predator.x, 0, SCREEN_WIDTH - GRID_SIZE);
                 predator.y = constrain(predator.y, 0, SCREEN_HEIGHT - GRID_SIZE);
 
-                // Collisions
                 if (predator.x === snake.x && predator.y === snake.y) gameOver = true;
-                if (snake.positions.slice(1).some(p => p[0] === snake.x && p[1] === p[1] === snake.y)) gameOver = true;
+                if (snake.positions.slice(1).some(p => p[0] === snake.x && p[1] === snake.y)) gameOver = true;
             }
 
-            // Draw game elements
             image(foodImg, food.x, food.y);
             image(predatorImg, predator.x, predator.y);
             image(snakeImg, snake.x, snake.y);
@@ -87,7 +102,6 @@
                 rect(snake.positions[i][0], snake.positions[i][1], GRID_SIZE, GRID_SIZE);
             }
 
-            // Draw scores
             textSize(20);
             fill(255);
             text(`Score: ${score}`, 10, 20);
@@ -100,6 +114,7 @@
         }
 
         function keyPressed() {
+            if (!gameStarted) return;
             if (!gameOver) {
                 if (keyCode === UP_ARROW) snake.direction = [0, -GRID_SIZE];
                 else if (keyCode === DOWN_ARROW) snake.direction = [0, GRID_SIZE];
