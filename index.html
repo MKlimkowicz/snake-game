@@ -21,6 +21,7 @@
         let snake, predator, food;
         let score = 0, highScore = 0, gameOver = false, gameStarted = false;
         let snakeImg, predatorImg, foodImg;
+        let predatorMoveCounter = 0;  // Slow predator movement
 
         function preload() {
             snakeImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/snake_head.png");
@@ -54,6 +55,7 @@
             food = {x: randomGrid(SCREEN_WIDTH), y: randomGrid(SCREEN_HEIGHT)};
             score = 0;
             gameOver = false;
+            predatorMoveCounter = 0;  // Reset counter
         }
 
         function draw() {
@@ -67,7 +69,7 @@
             }
 
             if (!gameOver) {
-                // Move snake with proper wrapping
+                // Move snake
                 let newX = snake.x + snake.direction[0];
                 let newY = snake.y + snake.direction[1];
                 snake.x = (newX < 0 ? SCREEN_WIDTH - GRID_SIZE : newX % SCREEN_WIDTH);
@@ -82,13 +84,17 @@
                     food = {x: randomGrid(SCREEN_WIDTH), y: randomGrid(SCREEN_HEIGHT)};
                 }
 
-                // Predator chase
-                if (predator.x < snake.x) predator.x += GRID_SIZE;
-                else if (predator.x > snake.x) predator.x -= GRID_SIZE;
-                if (predator.y < snake.y) predator.y += GRID_SIZE;
-                else if (predator.y > snake.y) predator.y -= GRID_SIZE;
-                predator.x = constrain(predator.x, 0, SCREEN_WIDTH - GRID_SIZE);
-                predator.y = constrain(predator.y, 0, SCREEN_HEIGHT - GRID_SIZE);
+                // Predator chase (slower)
+                predatorMoveCounter++;
+                if (predatorMoveCounter >= 3) {  // Move every 3 frames (~3.33 FPS)
+                    if (predator.x < snake.x) predator.x += GRID_SIZE;
+                    else if (predator.x > snake.x) predator.x -= GRID_SIZE;
+                    if (predator.y < snake.y) predator.y += GRID_SIZE;
+                    else if (predator.y > snake.y) predator.y -= GRID_SIZE;
+                    predator.x = constrain(predator.x, 0, SCREEN_WIDTH - GRID_SIZE);
+                    predator.y = constrain(predator.y, 0, SCREEN_HEIGHT - GRID_SIZE);
+                    predatorMoveCounter = 0;  // Reset counter
+                }
 
                 // Collisions
                 if (predator.x === snake.x && predator.y === snake.y) gameOver = true;
