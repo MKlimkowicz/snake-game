@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Predator Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #333; }
+        canvas { border: 1px solid #fff; }
+    </style>
+</head>
+<body>
+    <script>
+        const SCREEN_WIDTH = 1600;
+        const SCREEN_HEIGHT = 1200;
+        const GRID_SIZE = 40;  // Adjustable, matches your earlier versions
+        const SNAKE_COLOR = [0, 255, 0];
+        const BACKGROUND_COLOR = [50, 150, 50];
+
+        let snake, predator, food;
+        let score = 0, highScore = 0, gameOver = false;
+        let snakeImg, predatorImg, foodImg;
+
+        function preload() {
+            // Replace with your GitHub Pages URL after hosting
+            snakeImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/snake_head.png");
+            predatorImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/predator.png");
+            foodImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/food.png");
+        }
+
+        function setup() {
+            createCanvas(SCREEN_WIDTH, SCREEN_HEIGHT);
+            frameRate(10);  // Matches SNAKE_SPEED from Pygame
+            highScore = localStorage.getItem("highScore") || 0;
+            resetGame();
+        }
+
+        function resetGame() {
+            snake = {
+                x: SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2 % GRID_SIZE),
+                y: SCREEN_HEIGHT / 2 - (SCREEN_HEIGHT / 2 % GRID_SIZE),
+                length: 1,
+                direction: [GRID_SIZE, 0],
+                positions: []
+            };
+            predator = {x: 0, y: 0};
+            food = {x: randomGrid(), y: randomGrid()};
+            score = 0;
+            gameOver = false;
+        }
+
+        function draw() {
+            background(...BACKGROUND_COLOR);
+            
+            if (!gameOver) {
+                // Move snake
+                snake.x = (snake.x + snake.direction[0]) % SCREEN_WIDTH / GRID_SIZE * GRID_SIZE;
+                snake.y = (snake.y + snake.direction[1]) % SCREEN_HEIGHT / GRID_SIZE * GRID_SIZE;
+                snake.positions.unshift([snake.x, snake.y]);
+                if (snake.positions.length > snake.length) snake.positions.pop();
+
+                // Check food
+                if (snake.x === food.x && snake.y === food.y) {
+                    snake.length++;
+                    score += 10;
+                    food = {x: randomGrid(), y: randomGrid()};
+                }
+
+                // Predator chase
+                if (predator.x < snake.x) predator.x += GRID_SIZE;
+                else if (predator.x > snake.x) predator.x -= GRID_SIZE;
+                if (predator.y < snake.y) predator.y += GRID_SIZE;
+                else if (predator.y > snake.y) predator.y -= GRID_SIZE;
+                predator.x = constrain(predator.x, 0, SCREEN_WIDTH - GRID_SIZE);
+                predator.y = constrain(predator.y, 0, SCREEN_HEIGHT - GRID_SIZE);
+
+                // Collisions
+                if (predator.x === snake.x && predator.y === snake.y) gameOver = true;
+                if (snake.positions.slice(1).some(p => p[0] === snake.x && p[1] === p[1] === snake.y)) gameOver = true;
+            }
+
+            // Draw game elements
+            image(foodImg, food.x, food.y);
+            image(predatorImg, predator.x, predator.y);
+            image(snakeImg, snake.x, snake.y);
+            for (let i = 1; i < snake.positions.length; i++) {
+                fill(...SNAKE_COLOR);
+                rect(snake.positions[i][0], snake.positions[i][1], GRID_SIZE, GRID_SIZE);
+            }
+
+            // Draw scores
+            textSize(20);
+            fill(255);
+            text(`Score: ${score}`, 10, 20);
+            text(`Best: ${highScore}`, 10, 50);
+
+            if (gameOver) {
+                textSize(32);
+                text("Game Over! Press R to Restart", SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2);
+            }
+        }
+
+        function keyPressed() {
+            if (!gameOver) {
+                if (keyCode === UP_ARROW) snake.direction = [0, -GRID_SIZE];
+                else if (keyCode === DOWN_ARROW) snake.direction = [0, GRID_SIZE];
+                else if (keyCode === LEFT_ARROW) snake.direction = [-GRID_SIZE, 0];
+                else if (keyCode === RIGHT_ARROW) snake.direction = [GRID_SIZE, 0];
+            } else if (key === 'r') {
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem("highScore", highScore);
+                }
+                resetGame();
+            }
+        }
+
+        function randomGrid() {
+            return Math.floor(random(0, SCREEN_WIDTH / GRID_SIZE)) * GRID_SIZE;
+        }
+    </script>
+</body>
+</html>
