@@ -14,7 +14,7 @@
     <script>
         const SCREEN_WIDTH = 1600;
         const SCREEN_HEIGHT = 1200;
-        const GRID_SIZE = 40;
+        const GRID_SIZE = 20;
         const SNAKE_COLOR = [0, 255, 0];
         const BACKGROUND_COLOR = [50, 150, 50];
 
@@ -26,11 +26,6 @@
             snakeImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/snake_head.png");
             predatorImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/predator.png");
             foodImg = loadImage("https://MKlimkowicz.github.io/snake-game/assets/food.png");
-
-            // Resize images to GRID_SIZE (40x40)
-            snakeImg.resize(GRID_SIZE, GRID_SIZE);
-            predatorImg.resize(GRID_SIZE, GRID_SIZE);
-            foodImg.resize(GRID_SIZE, GRID_SIZE);
         }
 
         function setup() {
